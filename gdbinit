@@ -1,0 +1,2 @@
+file bin/simpscript
+r
