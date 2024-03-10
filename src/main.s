@@ -10,11 +10,11 @@ _hello:
 _hello.len = . - _hello
 
 _src:
-	.ascii "+-- 7 * 5"
+	.ascii "17 + 7-2"
 _src.len = . - _src
 
 _fmt:
-	.ascii "Token %x, %x"
+	.ascii "Token %x, %x-%x"
 _fmt.len = . - _fmt
 
 .text

@@ -75,9 +75,9 @@ Lex.from_source:
 		jmp _last
 	_4:
 		cmpb $'0', (%rsi)
-		jnge _not_number
+		jnae _not_number
 		cmpb $'9', (%rsi)
-		jnle _not_number
+		jnbe _not_number
 
 	_yes_number:
 		// total
@@ -89,16 +89,18 @@ Lex.from_source:
 		movb $TokenKind.Number, Token.kind(%rdi)
 		
 	_yes_number.loop:
-		mov (%rsi), %al
-		sub $'0', %al
+		mov (%rsi), %r9b
+		sub $'0', %r9b
 		cmp $9, %r9b
-		jg _done_number
+		ja _done_number
 
 		inc %rsi
 		mul %r8
 		add %r9, %rax
+		jmp _yes_number.loop
 	_done_number:
 		mov %rax, Token.data(%rdi)
+		add $Token.size, %rdi
 		jmp _last
 	_not_number:
 		movb $TokenKind.Bad, Token.kind(%rdi)

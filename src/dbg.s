@@ -31,7 +31,7 @@ _fmthex:
 		div %rcx
 
 		cmp $10, %rdx
-		jge _hex.is_letter
+		jae _hex.is_letter
 	_hex.is_digit:
 		add $'0', %rdx
 		jmp _hex.after
@@ -42,7 +42,7 @@ _fmthex:
 		dec %rsi
 		
 		cmp $0, %rax
-		jg _hex.loop
+		ja _hex.loop
 
 		mov %rsi, %rdx
 		and $1, %rdx
@@ -134,7 +134,7 @@ Dbg.println:
 		inc %rsi
 	_after:
 		cmp %rbx, %rax
-		jl _loop
+		jb _loop
 
 		movb $'\n', (%rsi)
 		inc %rsi
