@@ -14,7 +14,7 @@ _src:
 _src.len = . - _src
 
 _fmt:
-	.ascii "Test fmt: %x."
+	.ascii "Test fmt: %x, %x."
 _fmt.end:
 
 _args:

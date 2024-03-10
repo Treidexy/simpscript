@@ -55,7 +55,6 @@ _fmthex:
 		movb $'x', (%rsi)
 		dec %rsi
 		movb $'0', (%rsi)
-		dec %rsi
 
 		lea _hex.buffer.end(%rip), %rdx
 		sub %rsi, %rdx

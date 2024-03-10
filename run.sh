@@ -2,7 +2,10 @@ set -e
 
 # Clean
 
-rm bin/*
+if [ -d bin ]; then
+	rm -r bin
+fi
+mkdir bin
 
 # Compile
 
