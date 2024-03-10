@@ -79,6 +79,10 @@ ej.
 [ 17, ] ~> %rdi
 Dbg.println()
 
+%r - skips 8 bytes
+%x - prints 8 byte in hex
+%s - prints string (8 bytes ptr, 8 bytes len)
+
 */
 // (fmt: %rax, fmt.len: %rbx, args: (%rdi)) -> ()
 Dbg.println:
@@ -103,7 +107,7 @@ Dbg.println:
 
 	_0:
 		cmpb $'x', (%rax)
-		jne _copy
+		jne _1
 		inc %rax
 			push %rax
 			push %rbx
@@ -127,6 +131,27 @@ Dbg.println:
 
 			add $8, %rdi
 			jmp _after
+	_1:
+		cmpb $'s', (%rax)
+		jne _1
+		inc %rax
+			// string ptr
+			mov (%rdi), %r8
+			mov 8(%rdi), %r9
+			add $16, %rdi
+			// string ptr.end
+			add %r8, %r9
+
+		_1.loop:
+			mov (%r8), %cl
+			mov %cl, (%rsi)
+			inc %rsi
+			inc %r8
+
+			cmp %r9, %r8
+			jb _1.loop
+			jmp _after
+
 	_copy:
 		mov (%rax), %cl
 		mov %cl, (%rsi)

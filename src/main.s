@@ -10,12 +10,15 @@ _hello:
 _hello.len = . - _hello
 
 _src:
-	.ascii "17 + 7-2"
+	.ascii "sqrt (17 + 7) - 2"
 _src.len = . - _src
 
-_fmt:
-	.ascii "Token %x, %x-%x"
-_fmt.len = . - _fmt
+_fmt1:
+	.ascii "Token %x, %x%r"
+_fmt1.len = . - _fmt1
+_fmt2:
+	.ascii "Token %x, `%s`"
+_fmt2.len = . - _fmt2
 
 .text
 Program.main:
@@ -32,8 +35,16 @@ Program.main:
 	lea Lex.tokens(%rip), %rdi
 _loop:
 	push %rdi
-	lea _fmt(%rip), %rax
-	mov $_fmt.len, %rbx
+	cmpb $TokenKind.Name, Token.kind(%rdi)
+	je _loop.name
+
+	lea _fmt1(%rip), %rax
+	mov $_fmt1.len, %rbx
+	jmp _loop.print
+_loop.name:
+	lea _fmt2(%rip), %rax
+	mov $_fmt2.len, %rbx
+_loop.print:
 	call Dbg.println
 	pop %rdi
 	add $Token.size, %rdi

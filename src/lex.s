@@ -74,10 +74,26 @@ Lex.from_source:
 		add $Token.size, %rdi
 		jmp _last
 	_4:
+		cmpb $'(', (%rsi)
+		jne _5
+		inc %rsi
+
+		movb $TokenKind.LParen, Token.kind(%rdi)
+		add $Token.size, %rdi
+		jmp _last
+	_5:
+		cmpb $')', (%rsi)
+		jne _6
+		inc %rsi
+
+		movb $TokenKind.RParen, Token.kind(%rdi)
+		add $Token.size, %rdi
+		jmp _last
+	_6:
 		cmpb $'0', (%rsi)
-		jnae _not_number
+		jb _not_number
 		cmpb $'9', (%rsi)
-		jnbe _not_number
+		ja _not_number
 
 	_yes_number:
 		// total
@@ -103,6 +119,59 @@ Lex.from_source:
 		add $Token.size, %rdi
 		jmp _last
 	_not_number:
+
+		cmpb $'a', (%rsi)
+		jb _maybe_name.no_lowercase
+		cmpb $'z', (%rsi)
+		ja _maybe_name.no_lowercase
+
+		jmp _yes_name
+	_maybe_name.no_lowercase:
+		cmpb $'A', (%rsi)
+		jb _not_name
+		cmpb $'Z', (%rsi)
+		ja _not_name
+
+		jmp _yes_name
+
+	_yes_name:
+		movb $TokenKind.Name, Token.kind(%rdi)
+		mov %rsi, Token.data(%rdi)
+		incq Token.data_ext(%rdi)
+		inc %rsi
+
+		_yes_name.loop:
+			cmpb $'a', (%rsi)
+			jb _yes_name.loop.not_lowercase
+			cmpb $'z', (%rsi)
+			ja _yes_name.loop.not_lowercase
+
+			jmp _yes_name.loop.last
+		_yes_name.loop.not_lowercase:
+			cmpb $'A', (%rsi)
+			jb _yes_name.loop.not_uppercase
+			cmpb $'Z', (%rsi)
+			ja _yes_name.loop.not_uppercase
+
+			jmp _yes_name.loop.last
+		_yes_name.loop.not_uppercase:
+			cmpb $'0', (%rsi)
+			jb _yes_name.loop.after
+			cmpb $'9', (%rsi)
+			ja _yes_name.loop.after
+
+			jmp _yes_name.loop.last
+
+		_yes_name.loop.last:
+			incq Token.data_ext(%rdi)
+			inc %rsi
+			jmp _yes_name.loop
+		_yes_name.loop.after:
+			add $Token.size, %rdi
+			jmp _last
+
+
+	_not_name:
 		movb $TokenKind.Bad, Token.kind(%rdi)
 		xor %r9, %r9
 		mov (%rsi), %r9b
