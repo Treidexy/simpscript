@@ -10,12 +10,12 @@ _hello:
 _hello.len = . - _hello
 
 _src:
-	.ascii "print 7 * 5"
+	.asciz "print 7 * 5"
 _src.len = . - _src
 
 _fmt:
-	.ascii "Test fmt: %x, %x."
-_fmt.end:
+	.asciz "Test fmt: %x, %x."
+_fmt.len = . - _fmt
 
 _args:
 	.quad 0xFF22
@@ -33,7 +33,6 @@ Program.main:
 	call Dbg.hex
 
 	lea _fmt(%rip), %rax
-	lea _fmt.end(%rip), %rbx
 	lea _args(%rip), %rdi
 	call Dbg.println
 

@@ -80,7 +80,7 @@ ej.
 Dbg.println()
 
 */
-// (fmt: %rax, fmt.end: %rbx, args: (%rdi)) -> ()
+// (fmt: %rax, args: (%rdi)) -> ()
 Dbg.println:
 		// write pointer
 		lea _buffer(%rip), %rsi
@@ -119,13 +119,14 @@ Dbg.println:
 			add $8, %rdi
 			jmp _after
 	_copy:
-		movb (%rax), %cl
+		mov (%rax), %cl
 		mov %cl, (%rsi)
 		inc %rax
 		inc %rsi
 	_after:
-		cmp %rbx, %rax
-		jl _loop
+		mov (%rax), %cl
+		test %cl, %cl
+		jnz _loop
 
 		movb $'\n', (%rsi)
 		inc %rsi
