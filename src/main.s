@@ -13,6 +13,14 @@ _src:
 	.ascii "print 7 * 5"
 _src.len = . - _src
 
+_fmt:
+	.ascii "Test fmt: %x."
+_fmt.end:
+
+_args:
+	.quad 0xFF22
+	.quad 0xDEADBEEF
+
 .text
 Program.main:
 	mov $Sys.write, %rax
@@ -21,8 +29,13 @@ Program.main:
 	mov $_hello.len, %rdx
 	syscall
 
-	mov $0x2F22, %rax
+	mov $0xDEADBEEF, %rax
 	call Dbg.hex
+
+	lea _fmt(%rip), %rax
+	lea _fmt.end(%rip), %rbx
+	lea _args(%rip), %rdi
+	call Dbg.println
 
 	mov $Sys.exit, %rax
 	mov $0, %rdi
