@@ -9,16 +9,20 @@
 .align 16
 Lex.tokens:
 	.space Token.size * _max_tokens
-Lex.tokens.count:
-	.space 8
 _max_tokens = 1024
+
+_src.end:
+	.space 8
 
 .text
 
-// (%rsi) -> (Lex.tokens)
+// (src: %rsi, src.len: %rbx) -> (: Lex.tokens, Lex.tokens.eof: %rdi)
 Lex.from_source:
 		// token ptr
 		lea Lex.tokens(%rip), %rdi
+		
+		add %rsi, %rbx
+		mov %rbx, _src.end
 
 	_skip_whitespace:
 		inc %rsi
@@ -33,6 +37,9 @@ Lex.from_source:
 		je _skip_whitespace
 	_skip_whitespace.end:
 		dec %rsi
+
+		cmp _src.end, %rsi
+		je _after
 
 	_0:
 		cmpb $'+', (%rsi)
@@ -69,29 +76,40 @@ Lex.from_source:
 	_4:
 		cmpb $'0', (%rsi)
 		jnge _not_number
-		je _yes_number.maybe_hex
 		cmpb $'9', (%rsi)
 		jnle _not_number
-	
-	_yes_number.not_hex:
-		mov $10, %rcx
-		jmp _yes_number	
-	_yes_number.maybe_hex:
-		inc %rsi
-		cmpb $'x', (%rsi)
-		jne _yes_number.not_hex
-
-		inc $rsi
-		mov $0x10, %rcx
 
 	_yes_number:
+		// total
+		xor %rax, %rax
+		// digit
+		xor %r9, %r9
+		// base
+		mov $10, %r8
 		movb $TokenKind.Number, Token.kind(%rdi)
-		mov (%rsi), %r9b
-		sub $'0', %r9b
-		cmp %cl, %r9b
-		jg 
+		
+	_yes_number.loop:
+		mov (%rsi), %al
+		sub $'0', %al
+		cmp $9, %r9b
+		jg _done_number
 
+		inc %rsi
+		mul %r8
+		add %r9, %rax
+	_done_number:
+		mov %rax, Token.data(%rdi)
+		jmp _last
 	_not_number:
+		movb $TokenKind.Bad, Token.kind(%rdi)
+		xor %r9, %r9
+		mov (%rsi), %r9b
+		inc %rsi
+		mov %r9, Token.data(%rdi)
+		add $Token.size, %rdi
 
 	_last:
-		jmp _0
+		jmp _skip_whitespace
+	_after:
+		movb $TokenKind.Eof, Token.kind(%rdi)
+		ret

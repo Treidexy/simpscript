@@ -5,11 +5,13 @@ TokenKind.Plus		= 3
 TokenKind.Minus		= 4
 TokenKind.Star		= 5
 TokenKind.Slash		= 6
+TokenKind.Bad		= 69
 
 	.struct 0
-.align 16
-Token.data:
-	.space 15
 Token.kind:
-	.space 1
+	.space 8
+Token.data:
+	.space 8
+Token.data_ext:
+	.space 8
 Token.size = .

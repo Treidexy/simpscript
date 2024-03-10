@@ -80,10 +80,12 @@ ej.
 Dbg.println()
 
 */
-// (fmt: %rax, args: (%rdi)) -> ()
+// (fmt: %rax, fmt.len: %rbx, args: (%rdi)) -> ()
 Dbg.println:
 		// write pointer
 		lea _buffer(%rip), %rsi
+		
+		add %rax, %rbx
 
 	_loop:
 		cmpb $'%', (%rax)
@@ -93,6 +95,13 @@ Dbg.println:
 		cmpb $'%', (%rax)
 		je _copy
 
+		cmpb $'r', (%rax)
+		jne _0
+		inc %rax
+			add $8, %rdi
+			jmp _after
+
+	_0:
 		cmpb $'x', (%rax)
 		jne _copy
 		inc %rax
@@ -124,9 +133,8 @@ Dbg.println:
 		inc %rax
 		inc %rsi
 	_after:
-		mov (%rax), %cl
-		test %cl, %cl
-		jnz _loop
+		cmp %rbx, %rax
+		jl _loop
 
 		movb $'\n', (%rsi)
 		inc %rsi

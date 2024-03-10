@@ -10,16 +10,12 @@ _hello:
 _hello.len = . - _hello
 
 _src:
-	.asciz "print 7 * 5"
+	.ascii "+-- 7 * 5"
 _src.len = . - _src
 
 _fmt:
-	.asciz "Test fmt: %x, %x."
+	.ascii "Token %x, %x"
 _fmt.len = . - _fmt
-
-_args:
-	.quad 0xFF22
-	.quad 0xDEADBEEF
 
 .text
 Program.main:
@@ -28,13 +24,22 @@ Program.main:
 	lea _hello(%rip), %rsi
 	mov $_hello.len, %rdx
 	syscall
+	
+	lea _src(%rip), %rsi
+	mov $_src.len, %rbx
+	call Lex.from_source
 
-	mov $0xDEADBEEF, %rax
-	call Dbg.hex
-
+	lea Lex.tokens(%rip), %rdi
+_loop:
+	push %rdi
 	lea _fmt(%rip), %rax
-	lea _args(%rip), %rdi
+	mov $_fmt.len, %rbx
 	call Dbg.println
+	pop %rdi
+	add $Token.size, %rdi
+	
+	cmpb $TokenKind.Eof, Token.kind - Token.size(%rdi)
+	jne _loop
 
 	mov $Sys.exit, %rax
 	mov $0, %rdi
